@@ -18,7 +18,7 @@ class TestEmailService(TestCase):
     SYNTAX_ERROR = r'500'
     CONNECT_TO= r'Connected to'
 
-    COMMAND_CODE_REGEXP = '^\d{3}'
+    COMMAND_CODE_REGEXP = '\d{3}'
 
 
     def setUp(self):
@@ -44,9 +44,9 @@ class TestEmailService(TestCase):
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
-                           self.UNKNOWN_SERVICE, '']).returns(1)
-        spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.SERVICE_READY)
+                           self.UNKNOWN_SERVICE,pexpect.EOF, pexpect.TIMEOUT]).returns(1)
+        spawn_mock.expect([self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]).returns(0)
+        mock_get_group(spawn_mock).returns(self.SERVICE_READY)
 
         self.mc.replay()
 
@@ -69,7 +69,7 @@ class TestEmailService(TestCase):
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
-                           self.UNKNOWN_SERVICE, '']).returns(0)
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(0)
         spawn_mock.close(True)
 
         self.mc.replay()
@@ -94,9 +94,9 @@ class TestEmailService(TestCase):
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
-                           self.UNKNOWN_SERVICE, '']).returns(1)
-        spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.SERVICE_NOT_AVAILABLE)
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(1)
+        spawn_mock.expect([self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]).returns(0)
+        mock_get_group(spawn_mock).returns(self.SERVICE_NOT_AVAILABLE)
         spawn_mock.close(True)
 
         self.mc.replay()
@@ -105,7 +105,7 @@ class TestEmailService(TestCase):
 
         self.mc.verify()
 
-    def test_establish_connection_expect_another_error(self):
+    def test_establish_connection_expect_EOF_error(self):
         test_dict = {
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
@@ -116,15 +116,36 @@ class TestEmailService(TestCase):
         COMMAND = "telnet localhost 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         spawn_ctor_mock = self.mc.mock_constructor(pexpect, 'spawn')
-        mock_get_group = self.mc.mock_method(EmailService, 'get_group')
 
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
-                           self.UNKNOWN_SERVICE, '']).returns(1)
-        spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns('text')
-        mock_get_group().returns('text')
-        spawn_mock.close(True)
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(1)
+        spawn_mock.expect([self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]).returns(1)
+
+        self.mc.replay()
+
+        self.assertRaises(Exception, EmailService, test_dict)
+
+        self.mc.verify()
+
+    def test_establish_connection_expect_TIMEOUT_error(self):
+        test_dict = {
+            'sender': 'lenok@gmail.com',
+            'recipient': 'vovaxo@gmail.com',
+            'subject': 'test letter',
+            'host': 'localhost',
+            'msg': 'some text'
+        }
+        COMMAND = "telnet localhost 25"
+        spawn_mock = self.mc.mock_class(pexpect.spawn)
+        spawn_ctor_mock = self.mc.mock_constructor(pexpect, 'spawn')
+
+        spawn_ctor_mock(COMMAND).returns(spawn_mock)
+
+        spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(1)
+        spawn_mock.expect([self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]).returns(2)
 
         self.mc.replay()
 
@@ -147,7 +168,7 @@ class TestEmailService(TestCase):
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
-                           self.UNKNOWN_SERVICE, '']).returns(2)
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(2)
         spawn_mock.close(True)
 
         self.mc.replay()
@@ -156,7 +177,7 @@ class TestEmailService(TestCase):
 
         self.mc.verify()
 
-    def test_establish_connection_another_error(self):
+    def test_establish_connection_EOF_error(self):
         test_dict = {
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
@@ -167,13 +188,34 @@ class TestEmailService(TestCase):
         COMMAND = 'telnet localhost 25'
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         spawn_ctor_mock = self.mc.mock_constructor(pexpect, 'spawn')
-        mock_get_group = self.mc.mock_method(EmailService, 'get_group')
 
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
-                           self.UNKNOWN_SERVICE, '']).returns(3)
-        spawn_mock.close(True)
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(3)
+
+        self.mc.replay()
+
+        self.assertRaises(Exception, EmailService, test_dict)
+
+        self.mc.verify()
+
+    def test_establish_connection_TIMEOUT_error(self):
+        test_dict = {
+            'sender': 'lenok@gmail.com',
+            'recipient': 'vovaxo@gmail.com',
+            'subject': 'test letter',
+            'host': 'localhost',
+            'msg': 'some text'
+        }
+        COMMAND = 'telnet localhost 25'
+        spawn_mock = self.mc.mock_class(pexpect.spawn)
+        spawn_ctor_mock = self.mc.mock_constructor(pexpect, 'spawn')
+
+        spawn_ctor_mock(COMMAND).returns(spawn_mock)
+
+        spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
+                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(4)
 
         self.mc.replay()
 
@@ -200,20 +242,19 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.START_MAIL_INPUT)
-        spawn_mock.sendline('test letter\n some text \n.\n')
+        mock_get_group(spawn_mock).returns(self.START_MAIL_INPUT)
+        spawn_mock.sendline('test letter\n some text \n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('quit')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.SERVICE_CLOSING)
-
+        mock_get_group(spawn_mock).returns(self.SERVICE_CLOSING)
 
         self.mc.replay()
 
@@ -263,7 +304,7 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_expect_value = mock_get_group().returns(self.REQUEST_ABORTED)
+        mock_get_group(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
@@ -290,7 +331,7 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_expect_value = mock_get_group().returns('')
+        mock_get_group(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -317,7 +358,7 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_expect_value = mock_get_group().returns(self.SYNTAX_ERROR)
+        mock_get_group(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
@@ -344,10 +385,10 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.REQUEST_ABORTED)
+        mock_get_group(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
@@ -374,10 +415,10 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.SYNTAX_ERROR)
+        mock_get_group(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
@@ -404,10 +445,10 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns('')
+        mock_get_group(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -434,13 +475,13 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.REQUEST_ABORTED)
+        mock_get_group(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
@@ -467,13 +508,13 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.SYNTAX_ERROR)
+        mock_get_group(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
@@ -500,13 +541,13 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns('')
+        mock_get_group(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -533,16 +574,16 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.START_MAIL_INPUT)
-        spawn_mock.sendline('test letter\n some text \n.\n')
+        mock_get_group(spawn_mock).returns(self.START_MAIL_INPUT)
+        spawn_mock.sendline('test letter\n some text \n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.REQUEST_ABORTED)
+        mock_get_group(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
@@ -569,16 +610,16 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.START_MAIL_INPUT)
-        spawn_mock.sendline('test letter\n some text \n.\n')
+        mock_get_group(spawn_mock).returns(self.START_MAIL_INPUT)
+        spawn_mock.sendline('test letter\n some text \n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns('')
+        mock_get_group(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -605,19 +646,19 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.START_MAIL_INPUT)
-        spawn_mock.sendline('test letter\n some text \n.\n')
+        mock_get_group(spawn_mock).returns(self.START_MAIL_INPUT)
+        spawn_mock.sendline('test letter\n some text \n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('quit')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.SYNTAX_ERROR)
+        mock_get_group(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
@@ -644,19 +685,19 @@ class TestEmailService(TestCase):
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.START_MAIL_INPUT)
-        spawn_mock.sendline('test letter\n some text \n.\n')
+        mock_get_group(spawn_mock).returns(self.START_MAIL_INPUT)
+        spawn_mock.sendline('test letter\n some text \n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns(self.COMPLETED)
+        mock_get_group(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('quit')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_group().returns('')
+        mock_get_group(spawn_mock).returns('')
 
 
         self.mc.replay()
@@ -665,4 +706,3 @@ class TestEmailService(TestCase):
         self.assertRaises(Exception, con.send_email, test_dict )
 
         self.mc.verify()
-

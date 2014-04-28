@@ -2,19 +2,18 @@ from optparse import OptionParser
 import pexpect
 import sys
 import ConfigParser, os
+import re
 
 
-def get_config_from_file(self):
+def get_config_from_file():
     config = ConfigParser.ConfigParser()
     path = "/home/lenok/PyCharmProjects/SendEmail/smtp_config.ini"
-    # path = os.getcwd()
     config.read(path)
     host = config.get('SectionOne', 'default_smtp')
     return host
 
 
-def get_info_from_console(self):
-    global path
+def get_info_from_console():
     info_dict = []
     parser = OptionParser()
     parser.add_option("--sender", type="string", dest="sender")
@@ -38,22 +37,29 @@ def get_info_from_console(self):
         'subject': options.subject,
         }
     if options.path:
-        self.path = options.path
+        path = options.path
     msg = raw_input("Enter message:")
     info_dict['msg'] = msg
     if options.host:
         info_dict['host'] = options.host
-    return info_dict, path
+    result = []
+    result.append(info_dict)
+    if options.path:
+        result.append(options.path)
+    return result
 
 def main():
     input_info = get_info_from_console()
     info_dict = input_info[0]
-    path = input_info[1]
     if not 'host' in info_dict:
         info_dict['host'] = get_config_from_file()
     if not 'msg' in info_dict:
+        path = input_info[1]
         msg = open(path, 'r').read()
         info_dict['msg'] = msg
+    con = EmailService(info_dict)
+    con.send_email(info_dict)
+
 
 class EmailService():
 
@@ -72,8 +78,8 @@ class EmailService():
     TEL_COMMAND = 'telnet {host} {port}'
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
-    MSG = '{subject}\n {msg} \n.\n'
-    COMMAND_CODE_REGEXP = '^\d{3}'
+    MSG = '{subject}\n {msg} \n.'
+    COMMAND_CODE_REGEXP = '\d{3}'
 
     def __init__(self, info_dict):
         self.child = self.establish_connection(info_dict)
@@ -83,22 +89,27 @@ class EmailService():
         command = self.TEL_COMMAND.format(**info_dict)
 
         child = pexpect.spawn(command)
+        log_output = file('/home/lenok/PyCharmProjects/SendEmail/mylog.txt', 'w')
+        child.logfile = log_output
 
-        expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO, self.UNKNOWN_SERVICE, '']
+        expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO, self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
+        smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]
 
         i = child.expect(expect_options)
 
         if expect_options[i] == self.CONNECT_TO:
-            child.expect(self.COMMAND_CODE_REGEXP)
-            self.expect_value = self.get_group()
-            if self.expect_value == self.SERVICE_READY:
-                return child
-            elif self.expect_value == self.SERVICE_NOT_AVAILABLE:
-                child.close(True)
-                raise NotAvailable('Service not available, closing transmission channel')
-            else:
-                child.close(True)
-                raise Exception('Some another error')
+            k = child.expect(smtp_con_option)
+            if smtp_con_option[k] == self.COMMAND_CODE_REGEXP:
+                expect_value = self.get_group(child)
+                if expect_value == self.SERVICE_READY:
+                    return child
+                elif expect_value == self.SERVICE_NOT_AVAILABLE:
+                    child.close(True)
+                    raise NotAvailable('Service not available, closing transmission channel')
+            elif smtp_con_option[k] == pexpect.EOF:
+                raise Exception('EOF error. SMTP could not connect. Here is what SMTP said:',str(child))
+            elif smtp_con_option[k] == pexpect.TIMEOUT:
+                raise Exception('TIMEOUT error. Here is what SMTP said:',str(child))
 
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
@@ -107,25 +118,16 @@ class EmailService():
         elif expect_options[i] == self.UNKNOWN_SERVICE:
             child.close(True)
             raise UnknownService('Name or service not known')
-        else:
-            child.close(True)
-            raise Exception('Some another error')
 
-    def get_group(self):
-        self.m = self.child.match()
-        return self.m.group()
+        elif expect_options[i] == pexpect.EOF:
+            raise Exception('EOF error. Telnet could not connect. Here is what telnet said:',child)
 
-#     SERVICE_READY = r'220'
-#     COMPLETED = r'250'
-#     SERVICE_NOT_AVAILABLE = r'421'
-#     CONNECTION_REFUSED = r'Connection refused'
-#     UNKNOWN_SERVICE = r'Name or service not known'
-#     REQUEST_ABORTED = r'451' # 451 request action aborted
-#     START_MAIL_INPUT = r'354'
-#     SERVICE_CLOSING =   r'221'
-#     SYNTAX_ERROR = r'500'
-#     CONNECT_TO= r'Connected to'
-#     COMMAND_CODE_REGEXP = '^\d{3}'
+        elif expect_options[i] == pexpect.TIMEOUT:
+            raise Exception('TIMEOUT error. Here is what telnet said:',child)
+
+    def get_group(self, child):
+        m = child.match.group()
+        return m
 
     def send_email(self, info_dict):
         if not self.child.isalive():
@@ -134,53 +136,57 @@ class EmailService():
         self.child.sendline(self.MAIL_FROM.format(**info_dict))
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        self.expect_value = self.get_group()
-        if self.expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
-        elif self.expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
-        elif self.expect_value == self.COMPLETED:
+        expect_value = self.get_group(self.child)
+        if expect_value == self.COMPLETED:
             self.child.sendline(self.RECIPIENT.format(**info_dict))
+        elif expect_value == self.REQUEST_ABORTED:
+            raise RequestedActionAborted('Request action aborted: local error in processing')
+        elif expect_value == self.SYNTAX_ERROR:
+            raise MySyntaxError('Syntax error, command unrecognised')
         else:
-            raise Exception('Some another error')
+            raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        self.expect_value = self.get_group()
-        if self.expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
-        elif self.expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
-        elif self.expect_value == self.COMPLETED:
+        expect_value = self.get_group(self.child)
+        if expect_value == self.COMPLETED:
             self.child.sendline('DATA')
+        elif expect_value == self.REQUEST_ABORTED:
+            raise RequestedActionAborted('Request action aborted: local error in processing')
+        elif expect_value == self.SYNTAX_ERROR:
+            raise MySyntaxError('Syntax error, command unrecognised')
         else:
-            raise Exception('Some another error')
+            raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        self.expect_value = self.get_group()
-        if self.expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
-        elif self.expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
-        elif self.expect_value == self.START_MAIL_INPUT:
+        expect_value = self.get_group(self.child)
+        if expect_value == self.START_MAIL_INPUT:
             self.child.sendline(self.MSG.format(**info_dict))
-        else:
-            raise Exception('Some another error')
-
-        self.child.expect(self.COMMAND_CODE_REGEXP)
-        self.expect_value = self.get_group()
-        if self.expect_value == self.REQUEST_ABORTED:
+        elif expect_value == self.REQUEST_ABORTED:
             raise RequestedActionAborted('Request action aborted: local error in processing')
-        elif self.expect_value == self.COMPLETED:
-            self.child.sendline('quit')
+        elif expect_value == self.SYNTAX_ERROR:
+            raise MySyntaxError('Syntax error, command unrecognised')
         else:
-            raise Exception('Some another error')
+            raise Exception('Some another error',expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        self.expect_value = self.get_group()
-        if self.expect_value == self.SYNTAX_ERROR:
+        expect_value = self.get_group(self.child)
+        if expect_value == self.COMPLETED:
+            self.child.sendline('quit')
+        elif expect_value == self.REQUEST_ABORTED:
+            raise RequestedActionAborted('Request action aborted: local error in processing')
+        elif expect_value == self.SYNTAX_ERROR:
             raise MySyntaxError('Syntax error, command unrecognised')
-        elif not self.expect_value == self.SERVICE_CLOSING:
-            raise Exception('Some another error')
+        else:
+            raise Exception('Some another error', expect_value)
+
+        self.child.expect(self.COMMAND_CODE_REGEXP)
+        expect_value = self.get_group(self.child)
+        if expect_value == self.SERVICE_CLOSING:
+            pass
+        elif expect_value == self.SYNTAX_ERROR:
+            raise MySyntaxError('Syntax error, command unrecognised')
+        else:
+            raise Exception('Some another error', expect_value)
 
 
 class ConnectionRefused(Exception):
