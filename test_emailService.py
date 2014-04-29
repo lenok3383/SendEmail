@@ -18,7 +18,7 @@ class TestEmailService(TestCase):
     SYNTAX_ERROR = r'500'
     CONNECT_TO= r'Connected to'
 
-    COMMAND_CODE_REGEXP = '\d{3}'
+    COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
 
 
     def setUp(self):
