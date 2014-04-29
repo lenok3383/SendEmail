@@ -15,6 +15,7 @@ def get_config_from_file():
 
 def get_info_from_console():
     info_dict = []
+    result = []
     parser = OptionParser()
     parser.add_option("--sender", help="write your email", dest="sender", type="string")
     parser.add_option("-r", "--recipient", help="write recipient email", dest="recipient", type="string")
@@ -42,7 +43,6 @@ def get_info_from_console():
     info_dict['msg'] = msg
     if options.host:
         info_dict['host'] = options.host
-    result = []
     result.append(info_dict)
     if options.path:
         result.append(options.path)
@@ -78,7 +78,6 @@ class EmailService():
     SERVICE_CLOSING = r'221'
     SYNTAX_ERROR = r'500'
     CONNECT_TO = r'Connected to'
-
     TEL_COMMAND = 'telnet {host} {port}'
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
@@ -91,16 +90,12 @@ class EmailService():
     def establish_connection(self, info_dict):
         info_dict['port'] = self.DEFAULT_PORT
         command = self.TEL_COMMAND.format(**info_dict)
-
         child = pexpect.spawn(command)
         log_output = file('/home/lenok/PyCharmProjects/SendEmail/mylog.txt', 'w')
         child.logfile = log_output
-
         expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO, self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
         smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]
-
         i = child.expect(expect_options)
-
         if expect_options[i] == self.CONNECT_TO:
             k = child.expect(smtp_con_option)
             if smtp_con_option[k] == self.COMMAND_CODE_REGEXP:
@@ -114,18 +109,14 @@ class EmailService():
                 raise Exception('EOF error. SMTP could not connect. Here is what SMTP said:', str(child))
             elif smtp_con_option[k] == pexpect.TIMEOUT:
                 raise Exception('TIMEOUT error. Here is what SMTP said:', str(child))
-
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
             raise ConnectionRefused(' Unable to connect to remote host: Connection refused')
-
         elif expect_options[i] == self.UNKNOWN_SERVICE:
             child.close(True)
             raise UnknownService('Name or service not known')
-
         elif expect_options[i] == pexpect.EOF:
             raise Exception('EOF error. Telnet could not connect. Here is what telnet said:', child)
-
         elif expect_options[i] == pexpect.TIMEOUT:
             raise Exception('TIMEOUT error. Here is what telnet said:', child)
 
@@ -136,9 +127,7 @@ class EmailService():
     def send_email(self, info_dict):
         if not self.child.isalive():
             raise TerminationConnection('Connection failed')
-
         self.child.sendline(self.MAIL_FROM.format(**info_dict))
-
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.COMPLETED:
@@ -149,7 +138,6 @@ class EmailService():
             raise MySyntaxError('Syntax error, command unrecognised')
         else:
             raise Exception('Some another error', expect_value)
-
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.COMPLETED:
@@ -160,7 +148,6 @@ class EmailService():
             raise MySyntaxError('Syntax error, command unrecognised')
         else:
             raise Exception('Some another error', expect_value)
-
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.START_MAIL_INPUT:
@@ -171,7 +158,6 @@ class EmailService():
             raise MySyntaxError('Syntax error, command unrecognised')
         else:
             raise Exception('Some another error', expect_value)
-
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.COMPLETED:
@@ -182,7 +168,6 @@ class EmailService():
             raise MySyntaxError('Syntax error, command unrecognised')
         else:
             raise Exception('Some another error', expect_value)
-
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.SERVICE_CLOSING:
@@ -191,7 +176,6 @@ class EmailService():
             raise MySyntaxError('Syntax error, command unrecognised')
         else:
             raise Exception('Some another error', expect_value)
-
 
 class ConnectionRefused(Exception):
     pass
