@@ -79,7 +79,7 @@ class EmailService():
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
     MSG = '{subject}\n {msg} \n.'
-    COMMAND_CODE_REGEXP = '\d{3}'
+    COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
 
     def __init__(self, info_dict):
         self.child = self.establish_connection(info_dict)
@@ -126,7 +126,7 @@ class EmailService():
             raise Exception('TIMEOUT error. Here is what telnet said:',child)
 
     def get_group(self, child):
-        m = child.match.group()
+        m = child.match.group('code')
         return m
 
     def send_email(self, info_dict):
