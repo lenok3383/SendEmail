@@ -1,1 +1,0 @@
-"""VMock helpers"""

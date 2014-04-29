@@ -1,4 +1,0 @@
-{
-    "body": "OK",
-    "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Wed, 17 Jul 2013 10:14:21 GMT\r\nContent-Type: text/plain\r\nConnection: keep-alive\r\nContent-Length: 2\r\n\r\n"
-}

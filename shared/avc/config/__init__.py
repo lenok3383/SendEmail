@@ -1,3 +1,0 @@
-"""
-AVC configuration shared modules.
-"""
