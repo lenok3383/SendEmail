@@ -22,14 +22,15 @@ def get_info_from_console():
     parser.add_option("--host", help="you may write host", dest="host")
     parser.add_option("-p", "--path", help="path to file with message", dest="path")
     (options, args) = parser.parse_args(sys.argv)
-    if not (options.sender and options.recipient and options.subject):
-        raise Exception('No option has been given!!\nTry \'python sender.py --help\' for more information.')
+    missing_options = []
     if not options.sender:
-        raise Exception('No sender option has been given!!\nTry \'python sender.py --help\' for more information.')
+        missing_options.append('sender')
     if not options.recipient:
-        raise Exception('No recipient option has been given!!\nTry \'python sender.py --help\' for more information.')
+        missing_options.append('recipient')
     if not options.subject:
-        raise Exception('No subject option has been given!!\nTry \'python sender.py --help\' for more information.')
+        missing_options.append('subject')
+    if missing_options:
+        raise ValueError('Please specify the following options: %s' % (','.join(missing_options)))
     info_dict = {
         'sender': options.sender,
         'recipient': options.recipient,
@@ -49,7 +50,11 @@ def get_info_from_console():
 
 
 def main():
-    input_info = get_info_from_console()
+    try:
+        input_info = get_info_from_console()
+    except ValueError, option:
+        print 'Try \'python sender.py --help\' for more information.\n', option
+        return
     info_dict = input_info[0]
     if not 'host' in info_dict:
         info_dict['host'] = get_config_from_file()
