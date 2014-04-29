@@ -52,8 +52,8 @@ def get_info_from_console():
 
 
 def main():
-    working_directory = os.getcwd()
-    DEFAULT_PATH_CONFIG = working_directory+"/config/smtp_config.ini"
+    # working_directory = os.getcwd()
+    # DEFAULT_PATH_CONFIG = working_directory+"/config/smtp_config.ini"
     try:
         input_info = get_info_from_console()
     except ValueError, option:
@@ -64,8 +64,8 @@ def main():
         if 'path' in info_dict:
             config_path = info_dict['path']
             info_dict['host'] = get_config_from_file(config_path)
-        else:
-            info_dict['host'] = get_config_from_file(DEFAULT_PATH_CONFIG)
+        # else:
+        #     info_dict['host'] = get_config_from_file(DEFAULT_PATH_CONFIG)
     if not 'msg' in info_dict:
         msg_path = input_info[1]
         msg = open(msg_path, 'r').read()

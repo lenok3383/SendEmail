@@ -11,17 +11,15 @@ rcpt to: olena-gavrilyuh@mail.ru
 DATA
 DATA
 354 End data with <CR><LF>.<CR><LF>
-Subject:SUBJECT
+Subject:lettter
 
-test message
- 
+v 
 .
-Subject:SUBJECT
+Subject:lettter
 
-test message
- 
+v 
 .
-250 2.0.0 Ok: queued as C64EE68281
+250 2.0.0 Ok: queued as CCF9668F83
 quit
 quit
 221 2.0.0 Bye
