@@ -16,26 +16,25 @@ def get_config_from_file():
 def get_info_from_console():
     info_dict = []
     parser = OptionParser()
-    parser.add_option("--sender", type="string", dest="sender")
-    parser.add_option("-r", "--recipient", type="string", dest="recipient")
-    parser.add_option("-s", "--subject", type="string", dest="subject")
-    parser.add_option("--host", dest="host")
-    parser.add_option("-p", "--path", dest="path", help="path to file with message")
+    parser.add_option("--sender", help="write your email", dest="sender", type="string")
+    parser.add_option("-r", "--recipient", help="write recipient email", dest="recipient", type="string")
+    parser.add_option("-s", "--subject", help="write subject of message", dest="subject", type="string")
+    parser.add_option("--host", help="you may write host", dest="host")
+    parser.add_option("-p", "--path", help="path to file with message", dest="path")
     (options, args) = parser.parse_args(sys.argv)
+    if not (options.sender and options.recipient and options.subject):
+        raise Exception('No option has been given!!\nTry \'python sender.py --help\' for more information.')
     if not options.sender:
-        print "Enter sender"
-        return
+        raise Exception('No sender option has been given!!\nTry \'python sender.py --help\' for more information.')
     if not options.recipient:
-        print "Enter recipient"
-        return
+        raise Exception('No recipient option has been given!!\nTry \'python sender.py --help\' for more information.')
     if not options.subject:
-        print "Enter subject"
-        return
+        raise Exception('No subject option has been given!!\nTry \'python sender.py --help\' for more information.')
     info_dict = {
         'sender': options.sender,
         'recipient': options.recipient,
         'subject': options.subject,
-        }
+    }
     if options.path:
         path = options.path
     msg = raw_input("Enter message:")
@@ -47,6 +46,7 @@ def get_info_from_console():
     if options.path:
         result.append(options.path)
     return result
+
 
 def main():
     input_info = get_info_from_console()
@@ -62,7 +62,6 @@ def main():
 
 
 class EmailService():
-
     DEFAULT_PORT = 25
     SERVICE_READY = r'220'
     COMPLETED = r'250'
@@ -71,9 +70,9 @@ class EmailService():
     UNKNOWN_SERVICE = r'Name or service not known'
     REQUEST_ABORTED = r'451'
     START_MAIL_INPUT = r'354'
-    SERVICE_CLOSING =   r'221'
+    SERVICE_CLOSING = r'221'
     SYNTAX_ERROR = r'500'
-    CONNECT_TO= r'Connected to'
+    CONNECT_TO = r'Connected to'
 
     TEL_COMMAND = 'telnet {host} {port}'
     MAIL_FROM = 'mail from: {sender}'
@@ -107,9 +106,9 @@ class EmailService():
                     child.close(True)
                     raise NotAvailable('Service not available, closing transmission channel')
             elif smtp_con_option[k] == pexpect.EOF:
-                raise Exception('EOF error. SMTP could not connect. Here is what SMTP said:',str(child))
+                raise Exception('EOF error. SMTP could not connect. Here is what SMTP said:', str(child))
             elif smtp_con_option[k] == pexpect.TIMEOUT:
-                raise Exception('TIMEOUT error. Here is what SMTP said:',str(child))
+                raise Exception('TIMEOUT error. Here is what SMTP said:', str(child))
 
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
@@ -120,10 +119,10 @@ class EmailService():
             raise UnknownService('Name or service not known')
 
         elif expect_options[i] == pexpect.EOF:
-            raise Exception('EOF error. Telnet could not connect. Here is what telnet said:',child)
+            raise Exception('EOF error. Telnet could not connect. Here is what telnet said:', child)
 
         elif expect_options[i] == pexpect.TIMEOUT:
-            raise Exception('TIMEOUT error. Here is what telnet said:',child)
+            raise Exception('TIMEOUT error. Here is what telnet said:', child)
 
     def get_group(self, child):
         m = child.match.group('code')
@@ -166,7 +165,7 @@ class EmailService():
         elif expect_value == self.SYNTAX_ERROR:
             raise MySyntaxError('Syntax error, command unrecognised')
         else:
-            raise Exception('Some another error',expect_value)
+            raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
@@ -192,20 +191,25 @@ class EmailService():
 class ConnectionRefused(Exception):
     pass
 
+
 class NotAvailable(Exception):
     pass
+
 
 class UnknownService(Exception):
     pass
 
+
 class TerminationConnection(Exception):
     pass
+
 
 class RequestedActionAborted(Exception):
     pass
 
+
 class MySyntaxError(Exception):
-   pass
+    pass
 
 
 if __name__ == '__main__':
