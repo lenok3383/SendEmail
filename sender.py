@@ -52,8 +52,8 @@ def get_info_from_console():
 
 
 def main():
-    # working_directory = os.getcwd()
-    # DEFAULT_PATH_CONFIG = working_directory+"/config/smtp_config.ini"
+    working_directory = os.getcwd()
+    DEFAULT_PATH_CONFIG = working_directory+"/config/smtp_config.ini"
     try:
         input_info = get_info_from_console()
     except ValueError, option:
@@ -64,8 +64,8 @@ def main():
         if 'path' in info_dict:
             config_path = info_dict['path']
             info_dict['host'] = get_config_from_file(config_path)
-        # else:
-        #     info_dict['host'] = get_config_from_file(DEFAULT_PATH_CONFIG)
+        else:
+            info_dict['host'] = get_config_from_file(DEFAULT_PATH_CONFIG)
     if not 'msg' in info_dict:
         msg_path = input_info[1]
         msg = open(msg_path, 'r').read()
@@ -92,9 +92,6 @@ def main():
         print opt
 
 
-
-
-
 class EmailService():
     DEFAULT_PORT = 25
     SERVICE_READY = r'220'
@@ -110,7 +107,7 @@ class EmailService():
     TEL_COMMAND = 'telnet {host} {port}'
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
-    MSG = '{msg} \n.'
+    MSG = '{msg}\n.'
     SUBJECT = 'Subject:{subject}\n'
     COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
 
@@ -121,7 +118,8 @@ class EmailService():
         info_dict['port'] = self.DEFAULT_PORT
         command = self.TEL_COMMAND.format(**info_dict)
         child = pexpect.spawn(command)
-        log_output = file('/home/lenok/PyCharmProjects/SendEmail/mylog.txt', 'w')
+        working_directory = os.getcwd()
+        log_output = file(working_directory+'/mylog.txt', 'w')
         child.logfile = log_output
         expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO, self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
         smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]
