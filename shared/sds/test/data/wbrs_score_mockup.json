@@ -1,0 +1,22 @@
+{
+    "yeahoo.com": {
+        "body": "[{\"elements\": [\"yeahoo.com\"], \"meta\": {\"cache\": \"yeahoo.com\", \"ttl\": 3600}, \"response\": {\"wbrs\": {\"score\": \"noscore\"}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Mon, 22 Jul 2013 04:30:35 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 120\r\n\r\n"
+    },
+    "google.com": {
+        "body": "[{\"elements\": [\"google.com\"], \"meta\": {\"cache\": \"google.com\", \"ttl\": 3600}, \"response\": {\"wbrs\": {\"score\": 5.94}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Mon, 22 Jul 2013 04:30:35 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 115\r\nX-Cached: True\r\n\r\n"
+    },
+    "xvideos.com": {
+        "body": "[{\"elements\": [\"xvideos.com\"], \"meta\": {\"cache\": \"xvideos.com\", \"ttl\": 3600}, \"response\": {\"wbrs\": {\"score\": 5.94}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Mon, 22 Jul 2013 04:30:35 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 117\r\n\r\n"
+    },
+    "ya.ru": {
+        "body": "[{\"elements\": [\"ya.ru\"], \"meta\": {\"cache\": \"ya.ru\", \"ttl\": 3600}, \"response\": {\"wbrs\": {\"score\": -3.92}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Mon, 22 Jul 2013 04:30:35 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 106\r\n\r\n"
+    },
+    "sedoparking.com": {
+        "body": "[{\"elements\": [\"sedoparking.com\"], \"meta\": {\"cache\": \"sedoparking.com\", \"ttl\": 3600}, \"response\": {\"wbrs\": {\"score\": -2.12}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Mon, 22 Jul 2013 04:30:35 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 126\r\n\r\n"
+    }
+}

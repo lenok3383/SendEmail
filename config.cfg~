@@ -1,0 +1,2 @@
+[smtp]
+default_smtp: localhost

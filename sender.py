@@ -6,23 +6,22 @@ import os
 import re
 
 
-def get_config_from_file():
+def get_config_from_file(path):
     config = ConfigParser.ConfigParser()
-    path = "/home/lenok/PyCharmProjects/SendEmail/smtp_config.ini"
     config.read(path)
     host = config.get('SectionOne', 'default_smtp')
     return host
 
 
 def get_info_from_console():
-    info_dict = []
     result = []
     parser = OptionParser()
-    parser.add_option("--sender", help="write your email", dest="sender", type="string")
-    parser.add_option("-r", "--recipient", help="write recipient email", dest="recipient", type="string")
-    parser.add_option("-s", "--subject", help="write subject of message", dest="subject", type="string")
-    parser.add_option("--host", help="you may write host", dest="host")
-    parser.add_option("-p", "--path", help="path to file with message", dest="path")
+    parser.add_option("--sender", help="sender email address", dest="sender", type="string")
+    parser.add_option("-r", "--recipient", help="email address to deliver the message to", dest="recipient", type="string")
+    parser.add_option("-s", "--subject", help="subject of message", dest="subject", type="string")
+    parser.add_option("--host", help="host", dest="host")
+    parser.add_option("-p", "--path", help="path to config file", dest="path")
+    parser.add_option("-m", "--msg", help="path to file with message", dest="msg")
     (options, args) = parser.parse_args(sys.argv)
     missing_options = []
     if not options.sender:
@@ -38,19 +37,23 @@ def get_info_from_console():
         'recipient': options.recipient,
         'subject': options.subject,
     }
-    if options.path:
-        path = options.path
-    msg = raw_input("Enter message:")
-    info_dict['msg'] = msg
     if options.host:
         info_dict['host'] = options.host
+    else:
+        if options.path:
+            info_dict['path'] = options.path
     result.append(info_dict)
-    if options.path:
-        result.append(options.path)
+    if options.msg:
+        result.append(options.msg)
+    else:
+        msg = raw_input("Enter message:")
+        info_dict['msg'] = msg
     return result
 
 
 def main():
+    working_directory = os.getcwd()
+    DEFAULT_PATH_CONFIG = working_directory+"/config/smtp_config.ini"
     try:
         input_info = get_info_from_console()
     except ValueError, option:
@@ -58,13 +61,38 @@ def main():
         return
     info_dict = input_info[0]
     if not 'host' in info_dict:
-        info_dict['host'] = get_config_from_file()
+        if 'path' in info_dict:
+            config_path = info_dict['path']
+            info_dict['host'] = get_config_from_file(config_path)
+        else:
+            info_dict['host'] = get_config_from_file(DEFAULT_PATH_CONFIG)
     if not 'msg' in info_dict:
-        path = input_info[1]
-        msg = open(path, 'r').read()
+        msg_path = input_info[1]
+        msg = open(msg_path, 'r').read()
         info_dict['msg'] = msg
-    con = EmailService(info_dict)
-    con.send_email(info_dict)
+    try:
+        con = EmailService(info_dict)
+        try:
+            con.send_email(info_dict)
+        except TerminationConnection:
+            print 'Connection failed'
+        except RequestedActionAborted:
+            print 'Request action aborted: local error in processing'
+        except MySyntaxError:
+            print 'Syntax error, command unrecognised'
+        except Exception, opt:
+            print opt
+    except ConnectionRefused:
+        print ' Unable to connect to remote host: Connection refused'
+    except UnknownService:
+        print 'Name or service not known'
+    except NotAvailable:
+        print 'Service not available, closing transmission channel'
+    except Exception, opt:
+        print opt
+
+
+
 
 
 class EmailService():
@@ -82,7 +110,8 @@ class EmailService():
     TEL_COMMAND = 'telnet {host} {port}'
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
-    MSG = '{subject}\n {msg} \n.'
+    MSG = '{msg} \n.'
+    SUBJECT = 'Subject:{subject}\n'
     COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
 
     def __init__(self, info_dict):
@@ -105,17 +134,17 @@ class EmailService():
                     return child
                 elif expect_value == self.SERVICE_NOT_AVAILABLE:
                     child.close(True)
-                    raise NotAvailable('Service not available, closing transmission channel')
+                    raise NotAvailable
             elif smtp_con_option[k] == pexpect.EOF:
                 raise Exception('EOF error. SMTP could not connect. Here is what SMTP said:', str(child))
             elif smtp_con_option[k] == pexpect.TIMEOUT:
                 raise Exception('TIMEOUT error. Here is what SMTP said:', str(child))
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
-            raise ConnectionRefused(' Unable to connect to remote host: Connection refused')
+            raise ConnectionRefused
         elif expect_options[i] == self.UNKNOWN_SERVICE:
             child.close(True)
-            raise UnknownService('Name or service not known')
+            raise UnknownService
         elif expect_options[i] == pexpect.EOF:
             raise Exception('EOF error. Telnet could not connect. Here is what telnet said:', child)
         elif expect_options[i] == pexpect.TIMEOUT:
@@ -127,16 +156,16 @@ class EmailService():
 
     def send_email(self, info_dict):
         if not self.child.isalive():
-            raise TerminationConnection('Connection failed')
+            raise TerminationConnection
         self.child.sendline(self.MAIL_FROM.format(**info_dict))
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.COMPLETED:
             self.child.sendline(self.RECIPIENT.format(**info_dict))
         elif expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
+            raise RequestedActionAborted
         elif expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
+            raise MySyntaxError
         else:
             raise Exception('Some another error', expect_value)
         self.child.expect(self.COMMAND_CODE_REGEXP)
@@ -144,19 +173,20 @@ class EmailService():
         if expect_value == self.COMPLETED:
             self.child.sendline('DATA')
         elif expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
+            raise RequestedActionAborted
         elif expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
+            raise MySyntaxError
         else:
             raise Exception('Some another error', expect_value)
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.START_MAIL_INPUT:
+            self.child.sendline(self.SUBJECT.format(**info_dict))
             self.child.sendline(self.MSG.format(**info_dict))
         elif expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
+            raise RequestedActionAborted
         elif expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
+            raise MySyntaxError
         else:
             raise Exception('Some another error', expect_value)
         self.child.expect(self.COMMAND_CODE_REGEXP)
@@ -164,9 +194,9 @@ class EmailService():
         if expect_value == self.COMPLETED:
             self.child.sendline('quit')
         elif expect_value == self.REQUEST_ABORTED:
-            raise RequestedActionAborted('Request action aborted: local error in processing')
+            raise RequestedActionAborted
         elif expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
+            raise MySyntaxError
         else:
             raise Exception('Some another error', expect_value)
         self.child.expect(self.COMMAND_CODE_REGEXP)
@@ -174,7 +204,7 @@ class EmailService():
         if expect_value == self.SERVICE_CLOSING:
             pass
         elif expect_value == self.SYNTAX_ERROR:
-            raise MySyntaxError('Syntax error, command unrecognised')
+            raise MySyntaxError
         else:
             raise Exception('Some another error', expect_value)
 

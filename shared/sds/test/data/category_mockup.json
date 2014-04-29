@@ -1,0 +1,22 @@
+{
+    "apple.com": {
+        "body": "[{\"elements\": [\"apple.com\"], \"meta\": {\"cache\": \"apple.com\", \"ttl\": 3600}, \"response\": {\"webcat\": {\"cat\": 1003}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Thu, 18 Jul 2013 09:55:20 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 113\r\n\r\n"
+    },
+    "facebook.com": {
+        "body": "[{\"elements\": [\"facebook.com\"], \"meta\": {\"cache\": \"facebook.com\", \"ttl\": 3600}, \"response\": {\"webcat\": {\"cat\": 1069}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Thu, 18 Jul 2013 09:55:20 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 119\r\n\r\n"
+    },
+    "http://www.youtube.com/": {
+        "body": "[{\"elements\": [\"http://www.youtube.com/\"], \"meta\": {\"cache\": \"http://www.youtube.com/\", \"ttl\": 3600}, \"response\": {\"webcat\": {\"cat\": 1026}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Thu, 18 Jul 2013 09:55:20 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 141\r\n\r\n"
+    },
+    "http://stackoverflow.com": {
+        "body": "[{\"elements\": [\"http://stackoverflow.com\"], \"meta\": {\"cache\": \"http://stackoverflow.com\", \"ttl\": 3600}, \"response\": {\"webcat\": {\"cat\": 1003}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Wed, 17 Jul 2013 12:55:20 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 143\r\n\r\n"
+    },
+    "www.google.com": {
+        "body": "[{\"elements\": [\"www.google.com\"], \"meta\": {\"cache\": \"www.google.com\", \"ttl\": 3600}, \"response\": {\"webcat\": {\"cat\": 1020}}}]",
+        "headers": "HTTP/1.1 200 OK\r\nServer: nginx/0.8.54\r\nDate: Wed, 17 Jul 2013 12:54:19 GMT\r\nContent-Type: application/json\r\nConnection: keep-alive\r\nContent-Length: 123\r\n\r\n"
+    }
+}

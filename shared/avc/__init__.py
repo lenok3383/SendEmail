@@ -1,0 +1,3 @@
+"""
+AVC shared modules.
+"""
