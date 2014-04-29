@@ -1,7 +1,8 @@
 from optparse import OptionParser
 import pexpect
 import sys
-import ConfigParser, os
+import ConfigParser
+import os
 import re
 
 
