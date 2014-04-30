@@ -5,21 +5,19 @@ Escape character is '^]'.
 mail from: sender@example.com
 mail from: sender@example.com
 250 2.1.0 Ok
-rcpt to: olena-gavrilyuh@mail.ru
-rcpt to: olena-gavrilyuh@mail.ru
+rcpt to: pacelax@solvemail.info
+rcpt to: pacelax@solvemail.info
 250 2.1.5 Ok
 DATA
 DATA
 354 End data with <CR><LF>.<CR><LF>
-Subject:lettter
-
-v 
+Subject:SUBJECT
+dmfj
 .
-Subject:lettter
-
-v 
+Subject:SUBJECT
+dmfj
 .
-250 2.0.0 Ok: queued as CCF9668F83
+250 2.0.0 Ok: queued as E27FF68120
 quit
 quit
 221 2.0.0 Bye

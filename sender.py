@@ -108,7 +108,7 @@ class EmailService():
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
     MSG = '{msg}\n.'
-    SUBJECT = 'Subject:{subject}\n'
+    SUBJECT = 'Subject:{subject}'
     COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
 
     def __init__(self, info_dict):
