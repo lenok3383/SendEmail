@@ -3,14 +3,19 @@ import pexpect
 import sys
 import ConfigParser
 import os
-import re
+import logging
+
 
 
 def get_config_from_file(path):
     config = ConfigParser.ConfigParser()
     config.read(path)
     host = config.get('SectionOne', 'default_smtp')
-    return host
+    conf_dict = {'host': host}
+    if 'path_log' in config.options('SectionOne'):
+        path_log = config.get('SectionOne', 'path_log')
+        conf_dict['path_log'] = path_log
+    return conf_dict
 
 
 def get_info_from_console():
@@ -63,9 +68,16 @@ def main():
     if not 'host' in info_dict:
         if 'path' in info_dict:
             config_path = info_dict['path']
-            info_dict['host'] = get_config_from_file(config_path)
+            conf_dict = get_config_from_file(config_path)
+            info_dict['host'] = conf_dict['host']
+            if 'path_log' in conf_dict:
+                info_dict['path_log'] = conf_dict['path_log']
         else:
-            info_dict['host'] = get_config_from_file(DEFAULT_PATH_CONFIG)
+            conf_dict = get_config_from_file(DEFAULT_PATH_CONFIG)
+            print(conf_dict['host'])
+            info_dict['host'] = conf_dict['host']
+            if 'path_log' in conf_dict:
+                info_dict['path_log'] = conf_dict['path_log']
     if not 'msg' in info_dict:
         msg_path = input_info[1]
         msg = open(msg_path, 'r').read()
@@ -118,9 +130,13 @@ class EmailService():
         info_dict['port'] = self.DEFAULT_PORT
         command = self.TEL_COMMAND.format(**info_dict)
         child = pexpect.spawn(command)
-        working_directory = os.getcwd()
-        log_output = file(working_directory+'/mylog.txt', 'w')
-        child.logfile = log_output
+        if 'path_log' in info_dict:
+            path = info_dict['path_log']
+            try:
+                log_output = file(path, 'w')
+                child.logfile = log_output
+            except Warning:
+                logging.warning('Path to log file is incorrect!')
         expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO, self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
         smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]
         i = child.expect(expect_options)
@@ -200,7 +216,7 @@ class EmailService():
         self.child.expect(self.COMMAND_CODE_REGEXP)
         expect_value = self.get_group(self.child)
         if expect_value == self.SERVICE_CLOSING:
-            pass
+            print 'Send mail action okay, completed'
         elif expect_value == self.SYNTAX_ERROR:
             raise MySyntaxError
         else:
