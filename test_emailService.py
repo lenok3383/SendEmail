@@ -1,8 +1,8 @@
 from unittest import TestCase
 from shared.testing.vmock.mockcontrol import MockControl
 import pexpect
-from exception import ConnectionRefused, NotAvailable, UnknownService,\
-                        RequestedActionAborted, TerminationConnection, MySyntaxError
+from exception import ConnectionRefusedException, NotAvailableException, UnknownServiceException,\
+    RequestedActionAbortedException, TerminationConnectionException,SyntaxErrorException
 from sending_service import EmailService
 
 
@@ -41,14 +41,15 @@ class TestEmailService(TestCase):
         COMMAND = 'telnet localhost 25'
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         spawn_ctor_mock = self.mc.mock_constructor(pexpect, 'spawn')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService,
+                                                              'get_expect_smtp_reply_code')
 
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
                            self.UNKNOWN_SERVICE,pexpect.EOF, pexpect.TIMEOUT]).returns(1)
         spawn_mock.expect([self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SERVICE_READY)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SERVICE_READY)
 
         self.mc.replay()
 
@@ -77,7 +78,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        self.assertRaises(ConnectionRefused, EmailService, test_dict)
+        self.assertRaises(ConnectionRefusedException, EmailService, test_dict)
 
         self.mc.verify()
 
@@ -93,19 +94,19 @@ class TestEmailService(TestCase):
         COMMAND = "telnet localhost 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         spawn_ctor_mock = self.mc.mock_constructor(pexpect, 'spawn')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code= self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         spawn_ctor_mock(COMMAND).returns(spawn_mock)
 
         spawn_mock.expect([self.CONNECTION_REFUSED, self.CONNECT_TO,
                            self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]).returns(1)
         spawn_mock.expect([self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SERVICE_NOT_AVAILABLE)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SERVICE_NOT_AVAILABLE)
         spawn_mock.close(True)
 
         self.mc.replay()
 
-        self.assertRaises(NotAvailable, EmailService, test_dict)
+        self.assertRaises(NotAvailableException, EmailService, test_dict)
 
         self.mc.verify()
 
@@ -180,7 +181,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        self.assertRaises(UnknownService, EmailService, test_dict)
+        self.assertRaises(UnknownServiceException, EmailService, test_dict)
 
         self.mc.verify()
 
@@ -245,27 +246,27 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.START_MAIL_INPUT)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.START_MAIL_INPUT)
         spawn_mock.sendline('Subject:test letter')
         spawn_mock.sendline('some text\n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('quit')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SERVICE_CLOSING)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SERVICE_CLOSING)
 
         self.mc.replay()
 
@@ -294,7 +295,7 @@ class TestEmailService(TestCase):
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(TerminationConnection, con.send_email, test_dict )
+        self.assertRaises(TerminationConnectionException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -310,19 +311,19 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.REQUEST_ABORTED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(RequestedActionAborted, con.send_email, test_dict )
+        self.assertRaises(RequestedActionAbortedException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -338,14 +339,14 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns('')
+        mock_get_expect_smtp_reply_code(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -366,19 +367,19 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SYNTAX_ERROR)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(MySyntaxError, con.send_email, test_dict )
+        self.assertRaises(SyntaxErrorException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -394,22 +395,22 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.REQUEST_ABORTED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(RequestedActionAborted, con.send_email, test_dict )
+        self.assertRaises(RequestedActionAbortedException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -425,22 +426,22 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SYNTAX_ERROR)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(MySyntaxError, con.send_email, test_dict )
+        self.assertRaises(SyntaxErrorException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -456,17 +457,17 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value= self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code= self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns('')
+        mock_get_expect_smtp_reply_code(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -487,25 +488,25 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.REQUEST_ABORTED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(RequestedActionAborted, con.send_email, test_dict )
+        self.assertRaises(RequestedActionAbortedException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -521,25 +522,25 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SYNTAX_ERROR)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(MySyntaxError, con.send_email, test_dict )
+        self.assertRaises(SyntaxErrorException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -555,20 +556,20 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns('')
+        mock_get_expect_smtp_reply_code(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -589,29 +590,29 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.START_MAIL_INPUT)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.START_MAIL_INPUT)
         spawn_mock.sendline('Subject:test letter')
         spawn_mock.sendline('some text\n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.REQUEST_ABORTED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.REQUEST_ABORTED)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(RequestedActionAborted, con.send_email, test_dict )
+        self.assertRaises(RequestedActionAbortedException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -627,24 +628,24 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.START_MAIL_INPUT)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.START_MAIL_INPUT)
         spawn_mock.sendline('Subject:test letter')
         spawn_mock.sendline('some text\n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns('')
+        mock_get_expect_smtp_reply_code(spawn_mock).returns('')
 
         self.mc.replay()
 
@@ -665,32 +666,32 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value = self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code = self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.START_MAIL_INPUT)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.START_MAIL_INPUT)
         spawn_mock.sendline('Subject:test letter')
         spawn_mock.sendline('some text\n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('quit')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.SYNTAX_ERROR)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.SYNTAX_ERROR)
 
         self.mc.replay()
 
         con = EmailService(test_dict)
-        self.assertRaises(MySyntaxError, con.send_email, test_dict )
+        self.assertRaises(SyntaxErrorException, con.send_email, test_dict )
 
         self.mc.verify()
 
@@ -706,27 +707,27 @@ class TestEmailService(TestCase):
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
         mock_establish_connection = self.mc.mock_method(EmailService, 'establish_connection')
-        mock_get_expect_value= self.mc.mock_method(EmailService, 'get_expect_value')
+        mock_get_expect_smtp_reply_code= self.mc.mock_method(EmailService, 'get_expect_smtp_reply_code')
 
         mock_establish_connection(test_dict).returns(spawn_mock)
 
         spawn_mock.isalive().returns(True)
         spawn_mock.sendline('mail from: lenok@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('rcpt to: vovaxo@gmail.com')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('DATA')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.START_MAIL_INPUT)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.START_MAIL_INPUT)
         spawn_mock.sendline('Subject:test letter')
         spawn_mock.sendline('some text\n.')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns(self.COMPLETED)
+        mock_get_expect_smtp_reply_code(spawn_mock).returns(self.COMPLETED)
         spawn_mock.sendline('quit')
         spawn_mock.expect(self.COMMAND_CODE_REGEXP).returns(0)
-        mock_get_expect_value(spawn_mock).returns('')
+        mock_get_expect_smtp_reply_code(spawn_mock).returns('')
 
 
         self.mc.replay()

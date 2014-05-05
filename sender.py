@@ -2,12 +2,12 @@ from optparse import OptionParser
 import sys
 import ConfigParser
 import os
-import os.path
 from sending_service import EmailService
-from exception import ConnectionRefused, NotAvailable, UnknownService, \
-            RequestedActionAborted, TerminationConnection, MySyntaxError
+from exception import ConnectionRefusedException, NotAvailableException, UnknownServiceException,\
+    RequestedActionAbortedException, TerminationConnectionException, SyntaxErrorException
 
-
+DEFAULT_PORT = 25
+SEND_COMPLETED = 'completed'
 
 def get_config_from_file(path_conf_file):
     conf_dict = {}
@@ -22,15 +22,20 @@ def get_config_from_file(path_conf_file):
 
 
 def get_info_from_console():
-    DEFAULT_PORT = 25
     result = []
     parser = OptionParser()
-    parser.add_option("--sender", help="sender email address", dest="sender", type="string")
-    parser.add_option("-r", "--recipient", help="email address to deliver the message to", dest="recipient", type="string")
-    parser.add_option("-s", "--subject", help="subject of message", dest="subject", type="string")
+    parser.add_option("--sender", help="sender email address",
+                      dest="sender", type="string")
+    parser.add_option("-r", "--recipient", help="email address to "
+                       "deliver the message to", dest="recipient",
+                      type="string")
+    parser.add_option("-s", "--subject", help="subject of message",
+                      dest="subject", type="string")
     parser.add_option("--host", help="host", dest="server_host")
-    parser.add_option("-p", "--path", help="path to config file", dest="path_conf_file")
-    parser.add_option("-m", "--msg", help="path to file with message", dest="msg")
+    parser.add_option("-p", "--path", help="path to config file",
+                      dest="path_conf_file")
+    parser.add_option("-m", "--msg", help="path to file with message",
+                      dest="msg")
     (options, args) = parser.parse_args(sys.argv)
     missing_options = []
     if not options.sender:
@@ -40,7 +45,8 @@ def get_info_from_console():
     if not options.subject:
         missing_options.append('subject')
     if missing_options:
-        raise ValueError('Please specify the following options: %s' % (','.join(missing_options)))
+        raise ValueError('Please specify the following options: %s'
+                         % (','.join(missing_options)))
     info_dict = {
         'sender': options.sender,
         'recipient': options.recipient,
@@ -62,7 +68,7 @@ def get_info_from_console():
 
 def main():
     working_directory = os.getcwd()
-    DEFAULT_PATH_CONFIG = os.path.join(working_directory+"/config/smtp_config.ini")
+    DEFAULT_PATH_CONFIG = os.path.join(working_directory,"config/smtp_config.ini")
     try:
         input_info = get_info_from_console()
     except ValueError, option:
@@ -84,28 +90,27 @@ def main():
         info_dict['msg'] = msg
     try:
         con = EmailService(info_dict)
-    except ConnectionRefused:
+        result = con.send_email(info_dict)
+        if result == SEND_COMPLETED:
+            print 'Send mail action okay, completed'
+    except ConnectionRefusedException:
         print ' Unable to connect to remote host: Connection refused'
-    except UnknownService:
+    except UnknownServiceException:
         print 'Name or service not known'
-    except NotAvailable:
+    except NotAvailableException:
         print 'Service not available, closing transmission channel'
-    except Exception, opt:
-        print opt
-    try:
-        con = EmailService(info_dict)
-        con.send_email(info_dict)
-    except TerminationConnection:
+    except TerminationConnectionException:
         print 'Connection failed'
-    except RequestedActionAborted:
+    except RequestedActionAbortedException:
         print 'Request action aborted: local error in processing'
-    except MySyntaxError:
+    except SyntaxErrorException:
         print 'Syntax error, command unrecognised'
     except Exception, opt:
         print opt
 
+
 if __name__ == '__main__':
-    main()
+        main()
 
 
 

@@ -1,22 +1,22 @@
-class ConnectionRefused(Exception):
+class ConnectionRefusedException(Exception):
     pass
 
 
-class NotAvailable(Exception):
+class NotAvailableException(Exception):
     pass
 
 
-class UnknownService(Exception):
+class UnknownServiceException(Exception):
     pass
 
 
-class TerminationConnection(Exception):
+class TerminationConnectionException(Exception):
     pass
 
 
-class RequestedActionAborted(Exception):
+class RequestedActionAbortedException(Exception):
     pass
 
 
-class MySyntaxError(Exception):
+class SyntaxErrorException(Exception):
     pass
