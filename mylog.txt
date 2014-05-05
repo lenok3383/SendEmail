@@ -2,23 +2,24 @@ Trying 127.0.0.1...
 Connected to localhost.
 Escape character is '^]'.
 220 lenok-VirtualBox ESMTP Postfix (Ubuntu)
-mail from: sender@example.com
-mail from: sender@example.com
+mail from: olena-gavrilyuh@mail.ru
+mail from: olena-gavrilyuh@mail.ru
 250 2.1.0 Ok
-rcpt to: tiyaxocage@toomail.biz
-rcpt to: tiyaxocage@toomail.biz
+rcpt to: wopamupik@solvemail.info
+rcpt to: wopamupik@solvemail.info
 250 2.1.5 Ok
 DATA
 DATA
 354 End data with <CR><LF>.<CR><LF>
 Subject:SUBJECT
-mess
+cs
 .
+
 Subject:SUBJECT
-mess
+cs
 .
-250 2.0.0 Ok: queued as 70390681A4
+250 2.0.0 Ok: queued as 40A50681EC
 quit
+
+500 5.5.2 Error: bad syntax
 quit
-221 2.0.0 Bye
-Connection closed by foreign host.
