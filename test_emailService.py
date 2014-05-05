@@ -34,9 +34,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = 'telnet localhost 25'
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -61,9 +61,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = "telnet localhost 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -86,9 +86,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = "telnet localhost 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -114,9 +114,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = "telnet localhost 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -139,9 +139,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = "telnet localhost 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -164,9 +164,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'host',
+            'server_host': 'host',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = "telnet host 25"
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -189,9 +189,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = 'telnet localhost 25'
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -213,9 +213,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
         COMMAND = 'telnet localhost 25'
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -238,9 +238,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -279,9 +279,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -303,9 +303,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -331,9 +331,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -359,9 +359,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -387,9 +387,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -418,9 +418,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -449,9 +449,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -480,9 +480,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -514,9 +514,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -548,9 +548,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -582,9 +582,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -620,9 +620,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -658,9 +658,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)
@@ -699,9 +699,9 @@ class TestEmailService(TestCase):
             'sender': 'lenok@gmail.com',
             'recipient': 'vovaxo@gmail.com',
             'subject': 'test letter',
-            'host': 'localhost',
+            'server_host': 'localhost',
             'msg': 'some text',
-            'port': 25
+            'smtp_port': 25
         }
 
         spawn_mock = self.mc.mock_class(pexpect.spawn)

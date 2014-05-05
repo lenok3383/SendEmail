@@ -13,8 +13,8 @@ def get_config_from_file(path_conf_file):
     conf_dict = {}
     config = ConfigParser.ConfigParser()
     config.read(path_conf_file)
-    host = config.get('SectionOne', 'default_smtp')
-    conf_dict['host'] = host
+    server_host = config.get('SectionOne', 'default_smtp')
+    conf_dict['server_host'] = server_host
     if 'path_log' in config.options('SectionOne'):
         path_log = config.get('SectionOne', 'path_log')
         conf_dict['path_log'] = path_log
@@ -28,7 +28,7 @@ def get_info_from_console():
     parser.add_option("--sender", help="sender email address", dest="sender", type="string")
     parser.add_option("-r", "--recipient", help="email address to deliver the message to", dest="recipient", type="string")
     parser.add_option("-s", "--subject", help="subject of message", dest="subject", type="string")
-    parser.add_option("--host", help="host", dest="host")
+    parser.add_option("--host", help="host", dest="server_host")
     parser.add_option("-p", "--path", help="path to config file", dest="path_conf_file")
     parser.add_option("-m", "--msg", help="path to file with message", dest="msg")
     (options, args) = parser.parse_args(sys.argv)
@@ -46,12 +46,12 @@ def get_info_from_console():
         'recipient': options.recipient,
         'subject': options.subject,
     }
-    if options.host:
-        info_dict['host'] = options.host
+    if options.server_host:
+        info_dict['server_host'] = options.server_host
     else:
         if options.path_conf_file:
             info_dict['path_conf_file'] = options.path_conf_file
-    info_dict['port'] = DEFAULT_PORT
+    info_dict['smtp_port'] = DEFAULT_PORT
     result.append(info_dict)
     if options.msg:
         result.append(options.msg)
@@ -69,13 +69,13 @@ def main():
         print 'Try \'python sender.py --help\' for more information.\n', option
         return
     info_dict = input_info[0]
-    if not 'host' in info_dict:
+    if not 'server_host' in info_dict:
         if 'path_conf_file' in info_dict:
             config_path = info_dict['path_conf_file']
         else:
             config_path = DEFAULT_PATH_CONFIG
         conf_dict = get_config_from_file(config_path)
-        info_dict['host'] = conf_dict['host']
+        info_dict['server_host'] = conf_dict['server_host']
         if 'path_log' in conf_dict:
                 info_dict['path_log'] = conf_dict['path_log']
     if not 'msg' in info_dict:

@@ -14,7 +14,7 @@ class EmailService():
     SERVICE_CLOSING = r'221'
     SYNTAX_ERROR = r'500'
     CONNECT_TO = r'Connected to'
-    TEL_COMMAND = 'telnet {host} {port}'
+    TEL_COMMAND = 'telnet {server_host} {smtp_port}'
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
     MSG = '{msg}\n.'
