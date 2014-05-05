@@ -3,11 +3,14 @@ import sys
 import ConfigParser
 import os
 from sending_service import EmailService
-from exception import ConnectionRefusedException, NotAvailableException, UnknownServiceException,\
-    RequestedActionAbortedException, TerminationConnectionException, SyntaxErrorException
+from exception import ConnectionRefusedException, NotAvailableException,\
+    UnknownServiceException, RequestedActionAbortedException,\
+    TerminationConnectionException, SyntaxErrorException
+
 
 DEFAULT_PORT = 25
 SEND_COMPLETED = 'completed'
+
 
 def get_config_from_file(path_conf_file):
     conf_dict = {}
@@ -66,9 +69,11 @@ def get_info_from_console():
         info_dict['msg'] = msg
     return result
 
+
 def main():
     working_directory = os.getcwd()
-    DEFAULT_PATH_CONFIG = os.path.join(working_directory,"config/smtp_config.ini")
+    DEFAULT_PATH_CONFIG = os.path.join(working_directory,
+                                       "config/smtp_config.ini")
     try:
         input_info = get_info_from_console()
     except ValueError, option:
@@ -111,6 +116,3 @@ def main():
 
 if __name__ == '__main__':
         main()
-
-
-

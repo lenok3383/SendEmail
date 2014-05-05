@@ -1,7 +1,9 @@
-from exception import ConnectionRefusedException, NotAvailableException, UnknownServiceException,\
-    RequestedActionAbortedException, TerminationConnectionException, SyntaxErrorException
+from exception import ConnectionRefusedException, NotAvailableException,\
+    UnknownServiceException, RequestedActionAbortedException, \
+    TerminationConnectionException, SyntaxErrorException
 import pexpect
 import logging
+
 
 class EmailService():
     SERVICE_READY = r'220'
@@ -35,9 +37,10 @@ class EmailService():
                 child.logfile = log_output
             except Warning:
                 logging.warning('Path to log file is incorrect!')
-        expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO, self.UNKNOWN_SERVICE,
-                          pexpect.EOF, pexpect.TIMEOUT]
-        smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF, pexpect.TIMEOUT]
+        expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO,
+                          self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
+        smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF,
+                           pexpect.TIMEOUT]
         i = child.expect(expect_options)
         if expect_options[i] == self.CONNECT_TO:
             k = child.expect(smtp_con_option)
@@ -49,10 +52,11 @@ class EmailService():
                     child.close(True)
                     raise NotAvailableException
             elif smtp_con_option[k] == pexpect.EOF:
-                raise Exception('EOF error. SMTP could not connect. Here is what '
-                                'SMTP said:', str(child))
+                raise Exception('EOF error. SMTP could not connect.'
+                                ' Here is what SMTP said:', str(child))
             elif smtp_con_option[k] == pexpect.TIMEOUT:
-                raise Exception('TIMEOUT error. Here is what SMTP said:', str(child))
+                raise Exception('TIMEOUT error. Here is what SMTP said:',
+                                str(child))
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
             raise ConnectionRefusedException
@@ -60,8 +64,8 @@ class EmailService():
             child.close(True)
             raise UnknownServiceException
         elif expect_options[i] == pexpect.EOF:
-            raise Exception('EOF error. Telnet could not connect. Here is what '
-                            'telnet said:', child)
+            raise Exception('EOF error. Telnet could not connect.'
+                            ' Here is what telnet said:', child)
         elif expect_options[i] == pexpect.TIMEOUT:
             raise Exception('TIMEOUT error. Here is what telnet said:', child)
 
@@ -70,13 +74,13 @@ class EmailService():
         return m
 
     def send_email(self, info_dict):
-        if not self.child.isalive():        # check is child alive
+        if not self.child.isalive():  # check is child alive
             raise TerminationConnectionException
         # sending line to smtp server with info about sender
         self.child.sendline(self.MAIL_FROM.format(**info_dict))
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-         # get SMTP reply code to smtp command MAIL TO
+        # get SMTP reply code to smtp command MAIL TO
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
             self.child.sendline(self.RECIPIENT.format(**info_dict))
@@ -88,7 +92,7 @@ class EmailService():
             raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-         # get SMTP reply code to smtp command RCPT
+        # get SMTP reply code to smtp command RCPT
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
             self.child.sendline('DATA')
