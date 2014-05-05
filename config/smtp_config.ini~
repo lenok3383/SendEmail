@@ -1,0 +1,9 @@
+[SectionOne]
+default_smtp: localhost
+path_log: '/home/lenok/PyCharmProjects/SendEmail/config/mylog.txt'
+
+
+
+
+
+
