@@ -8,10 +8,11 @@ import logging
 
 
 def get_config_from_file(path):
+    conf_dict = {}
     config = ConfigParser.ConfigParser()
     config.read(path)
     host = config.get('SectionOne', 'default_smtp')
-    conf_dict = {'host': host}
+    conf_dict['host'] = host
     if 'path_log' in config.options('SectionOne'):
         path_log = config.get('SectionOne', 'path_log')
         conf_dict['path_log'] = path_log
@@ -127,6 +128,7 @@ class EmailService():
         self.child = self.establish_connection(info_dict)
 
     def establish_connection(self, info_dict):
+        print info_dict
         info_dict['port'] = self.DEFAULT_PORT
         command = self.TEL_COMMAND.format(**info_dict)
         child = pexpect.spawn(command)
