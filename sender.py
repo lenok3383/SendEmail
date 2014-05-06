@@ -62,12 +62,11 @@ def get_info_from_console():
     if options.path_conf_file:
         info_dict['path_conf_file'] = options.path_conf_file
     if options.msg_path:
-        result.append(options.msg_path)
+        info_dict['msg_path'] = options.msg_path
     else:
         msg = raw_input("Enter message:")
         info_dict['msg'] = msg
-    result.append(info_dict)
-    return result
+    return info_dict
 
 
 def main():
@@ -75,11 +74,10 @@ def main():
     DEFAULT_PATH_CONFIG = os.path.join(working_directory,
                                        "config/smtp_config.ini")
     try:
-        input_info = get_info_from_console()
+        info_dict = get_info_from_console()
     except ValueError, option:
         print 'Try \'python sender.py --help\' for more information.\n', option
         return
-    info_dict = input_info[1]
     if 'path_conf_file' in info_dict:
         config_path = info_dict['path_conf_file']
     else:
@@ -94,7 +92,7 @@ def main():
         info_dict['path_log'] = conf_dict['path_log']
 
     if not 'msg' in info_dict:
-        msg_path = input_info[0]
+        msg_path = info_dict['msg_path']
         msg = open(msg_path, 'r').read()
         info_dict['msg'] = msg
     try:
