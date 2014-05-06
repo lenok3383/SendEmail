@@ -16,8 +16,9 @@ def get_config_from_file(path_conf_file):
     conf_dict = {}
     config = ConfigParser.ConfigParser()
     config.read(path_conf_file)
-    server_host = config.get('SectionOne', 'default_smtp')
-    conf_dict['server_host'] = server_host
+    if 'default_smtp' in config.options('SectionOne'):
+        server_host = config.get('SectionOne', 'default_smtp')
+        conf_dict['server_host'] = server_host
     if 'path_log' in config.options('SectionOne'):
         path_log = config.get('SectionOne', 'path_log')
         conf_dict['path_log'] = path_log

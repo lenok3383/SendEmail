@@ -15,19 +15,21 @@ class EmailService():
     START_MAIL_INPUT = r'354'
     SERVICE_CLOSING = r'221'
     SYNTAX_ERROR = r'500'
-    CONNECT_TO = r'Connected to'
+
     TEL_COMMAND = 'telnet {server_host} {smtp_port}'
     MAIL_FROM = 'mail from: {sender}'
     RECIPIENT = 'rcpt to: {recipient}'
     MSG = '{msg}\n.'
     SUBJECT = 'Subject:{subject}'
     COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
-    SEND_COMPLETED = 'completed'
+    SEND_COMPLETED = r'completed'
+    CONNECT = r'Connected to {server_host}'
 
     def __init__(self, info_dict):
         self.child = self.establish_connection(info_dict)
 
     def establish_connection(self, info_dict):
+        CONNECT_TO = self.CONNECT.format(**info_dict)
         command = self.TEL_COMMAND.format(**info_dict)
         child = pexpect.spawn(command)  # connect to smtp server
         if 'path_log' in info_dict:
@@ -37,12 +39,12 @@ class EmailService():
                 child.logfile = log_output
             except Warning:
                 logging.warning('Path to log file is incorrect!')
-        expect_options = [self.CONNECTION_REFUSED, self.CONNECT_TO,
+        expect_options = [self.CONNECTION_REFUSED, CONNECT_TO,
                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
         smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF,
                            pexpect.TIMEOUT]
         i = child.expect(expect_options)
-        if expect_options[i] == self.CONNECT_TO:
+        if expect_options[i] == CONNECT_TO:
             k = child.expect(smtp_con_option)
             if smtp_con_option[k] == self.COMMAND_CODE_REGEXP:
                 expect_value = self.get_expect_smtp_reply_code(child)
@@ -80,7 +82,7 @@ class EmailService():
         self.child.sendline(self.MAIL_FROM.format(**info_dict))
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        # get SMTP reply code to smtp command MAIL TO
+        # get answer (SMTP reply code) from smtp command MAIL TO
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
             self.child.sendline(self.RECIPIENT.format(**info_dict))
@@ -92,7 +94,7 @@ class EmailService():
             raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        # get SMTP reply code to smtp command RCPT
+        # get answer (SMTP reply code) from smtp command RCPT
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
             self.child.sendline('DATA')
@@ -104,7 +106,7 @@ class EmailService():
             raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        # get SMTP reply code to smtp command DATA
+        # get answer (SMTP reply code) from smtp command DATA
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.START_MAIL_INPUT:
             self.child.sendline(self.SUBJECT.format(**info_dict))
@@ -117,7 +119,7 @@ class EmailService():
             raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        # get SMTP reply code to sending message
+        # get answer (SMTP reply code)  from sending message
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
             self.child.sendline('quit')
@@ -129,7 +131,7 @@ class EmailService():
             raise Exception('Some another error', expect_value)
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
-        # get SMTP reply code to smtp command quit
+        # get answer (SMTP reply code) from smtp command quit
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.SERVICE_CLOSING:
             return self.SEND_COMPLETED
