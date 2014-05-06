@@ -39,7 +39,7 @@ def get_info_from_console():
     parser.add_option("-p", "--path", help="path to config file",
                       dest="path_conf_file")
     parser.add_option("-m", "--msg", help="path to file with message",
-                      dest="msg")
+                      dest="msg_path")
     (options, args) = parser.parse_args(sys.argv)
     missing_options = []
     if not options.sender:
@@ -55,19 +55,18 @@ def get_info_from_console():
         'sender': options.sender,
         'recipient': options.recipient,
         'subject': options.subject,
+        'smtp_port': DEFAULT_PORT,
     }
     if options.server_host:
         info_dict['server_host'] = options.server_host
-    else:
-        if options.path_conf_file:
-            info_dict['path_conf_file'] = options.path_conf_file
-    info_dict['smtp_port'] = DEFAULT_PORT
-    result.append(info_dict)
-    if options.msg:
-        result.append(options.msg)
+    if options.path_conf_file:
+        info_dict['path_conf_file'] = options.path_conf_file
+    if options.msg_path:
+        result.append(options.msg_path)
     else:
         msg = raw_input("Enter message:")
         info_dict['msg'] = msg
+    result.append(info_dict)
     return result
 
 
@@ -80,18 +79,22 @@ def main():
     except ValueError, option:
         print 'Try \'python sender.py --help\' for more information.\n', option
         return
-    info_dict = input_info[0]
+    info_dict = input_info[1]
+    if 'path_conf_file' in info_dict:
+        config_path = info_dict['path_conf_file']
+    else:
+        config_path = DEFAULT_PATH_CONFIG
+    conf_dict = get_config_from_file(config_path)
     if not 'server_host' in info_dict:
-        if 'path_conf_file' in info_dict:
-            config_path = info_dict['path_conf_file']
+        if 'server_host' in conf_dict:
+            info_dict['server_host'] = conf_dict['server_host']
         else:
-            config_path = DEFAULT_PATH_CONFIG
-        conf_dict = get_config_from_file(config_path)
-        info_dict['server_host'] = conf_dict['server_host']
-        if 'path_log' in conf_dict:
-                info_dict['path_log'] = conf_dict['path_log']
+            raise Exception('There isn\'t server host in config file!')
+    if 'path_log' in conf_dict:
+        info_dict['path_log'] = conf_dict['path_log']
+
     if not 'msg' in info_dict:
-        msg_path = input_info[1]
+        msg_path = input_info[0]
         msg = open(msg_path, 'r').read()
         info_dict['msg'] = msg
     try:
