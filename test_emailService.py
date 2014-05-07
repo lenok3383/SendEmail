@@ -52,8 +52,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        EmailService(smtp_host, smtp_port, path_log,
-                    sender, recipient, subject, msg)
+        EmailService(smtp_host, smtp_port, path_log)
 
         self.mc.verify()
 
@@ -79,8 +78,8 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        self.assertRaises(ConnectionRefusedException, EmailService, smtp_host,
-                          smtp_port, path_log, sender, recipient, subject, msg)
+        self.assertRaises(ConnectionRefusedException, EmailService,
+                         smtp_host, smtp_port, path_log)
 
         self.mc.verify()
 
@@ -112,8 +111,8 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        self.assertRaises(NotAvailableException, EmailService, smtp_host,
-                          smtp_port, path_log, sender, recipient, subject, msg)
+        self.assertRaises(NotAvailableException, EmailService,
+                          smtp_host, smtp_port, path_log)
 
         self.mc.verify()
 
@@ -140,8 +139,8 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        self.assertRaises(Exception, EmailService, smtp_host, smtp_port,
-                          path_log, sender, recipient, subject, msg)
+        self.assertRaises(Exception, EmailService, smtp_host,
+                          smtp_port, path_log)
 
         self.mc.verify()
 
@@ -169,7 +168,7 @@ class TestEmailService(TestCase):
         self.mc.replay()
 
         self.assertRaises(Exception, EmailService, smtp_host, smtp_port,
-                          path_log,sender, recipient, subject, msg)
+                          path_log)
 
         self.mc.verify()
 
@@ -196,7 +195,7 @@ class TestEmailService(TestCase):
         self.mc.replay()
 
         self.assertRaises(UnknownServiceException, EmailService, smtp_host,
-                          smtp_port, path_log,sender, recipient, subject, msg)
+                          smtp_port, path_log)
 
         self.mc.verify()
 
@@ -222,7 +221,7 @@ class TestEmailService(TestCase):
         self.mc.replay()
 
         self.assertRaises(Exception, EmailService, smtp_host,smtp_port,
-                          path_log,sender, recipient, subject, msg)
+                          path_log)
 
         self.mc.verify()
 
@@ -248,7 +247,7 @@ class TestEmailService(TestCase):
         self.mc.replay()
 
         self.assertRaises(Exception, EmailService, smtp_host, smtp_port,
-                          path_log,sender, recipient, subject, msg)
+                          path_log)
 
         self.mc.verify()
 
@@ -292,8 +291,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         con.send_email(sender, recipient, subject, msg)
 
         self.mc.verify()
@@ -318,8 +316,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(TerminationConnectionException,
                           con.send_email, sender, recipient, subject, msg)
 
@@ -351,8 +348,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(RequestedActionAbortedException,con.send_email,
                           sender, recipient, subject, msg)
 
@@ -383,8 +379,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(Exception, con.send_email, sender, recipient,
                           subject, msg)
 
@@ -415,8 +410,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(SyntaxErrorException, con.send_email, sender,
                           recipient, subject, msg)
 
@@ -451,8 +445,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(RequestedActionAbortedException,con.send_email,
                           sender, recipient, subject, msg)
 
@@ -486,8 +479,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(SyntaxErrorException, con.send_email,
                           sender, recipient, subject, msg)
 
@@ -521,8 +513,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(Exception, con.send_email,
                           sender, recipient, subject, msg)
 
@@ -560,8 +551,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(RequestedActionAbortedException,
                           con.send_email, sender, recipient, subject, msg)
         self.mc.verify()
@@ -598,8 +588,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(SyntaxErrorException, con.send_email,
                           sender, recipient, subject, msg)
 
@@ -636,8 +625,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(Exception, con.send_email,
                           sender, recipient, subject, msg)
 
@@ -680,8 +668,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(RequestedActionAbortedException,
                           con.send_email, sender, recipient, subject, msg)
 
@@ -723,8 +710,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(Exception, con.send_email,
                           sender, recipient, subject, msg)
 
@@ -770,8 +756,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(SyntaxErrorException,
                           con.send_email, sender, recipient, subject, msg)
 
@@ -816,8 +801,7 @@ class TestEmailService(TestCase):
 
         self.mc.replay()
 
-        con = EmailService(smtp_host, smtp_port, path_log,sender,
-                           recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, path_log)
         self.assertRaises(Exception, con.send_email, sender, recipient,
                           subject, msg)
 

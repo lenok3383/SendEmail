@@ -12,16 +12,16 @@ DEFAULT_PORT = 25
 SEND_COMPLETED = 'completed'
 
 
-def get_config_from_file(path_conf_file):
+def get_config_from_file(conf_file_path):
     conf_dict = {}
     config = ConfigParser.ConfigParser()
-    config.read(path_conf_file)
+    config.read(conf_file_path)
     if 'default_smtp' in config.options('SectionOne'):
         smtp_host = config.get('SectionOne', 'default_smtp')
         conf_dict['smtp_host'] = smtp_host
-    if 'path_log' in config.options('SectionOne'):
-        path_log = config.get('SectionOne', 'path_log')
-        conf_dict['path_log'] = path_log
+    if 'log_path' in config.options('SectionOne'):
+        log_path = config.get('SectionOne', 'log_path')
+        conf_dict['log_path'] = log_path
     return conf_dict
 
 
@@ -36,7 +36,7 @@ def get_info_from_console():
                       dest="subject", type="string")
     parser.add_option("--host", help="host", dest="smtp_host")
     parser.add_option("-p", "--path", help="path to config file",
-                      dest="path_conf_file")
+                      dest="conf_file_path")
     parser.add_option("-m", "--msg", help="path to file with message",
                       dest="msg_path")
     (options, args) = parser.parse_args(sys.argv)
@@ -57,8 +57,8 @@ def get_info_from_console():
     }
     if options.smtp_host:
         console_options['smtp_host'] = options.smtp_host
-    if options.path_conf_file:
-        console_options['path_conf_file'] = options.path_conf_file
+    if options.conf_file_path:
+        console_options['conf_file_path'] = options.conf_file_path
     if options.msg_path:
         console_options['msg_path'] = options.msg_path
     else:
@@ -68,26 +68,34 @@ def get_info_from_console():
 
 
 def main():
-    working_directory = os.getcwd()
-    DEFAULT_PATH_CONFIG = os.path.join(working_directory,
+    # working_directory = os.getcwd()
+    DEFAULT_PATH_CONFIG = os.path.join(#working_directory,
                                        "config/smtp_config.ini")
     try:
-        info_dict = get_info_from_console()
+        console_options = get_info_from_console()
     except ValueError, option:
         print 'Try \'python sender.py --help\' for more information.\n', option
         return
 
-    config_path = info_dict.get('path_conf_file', DEFAULT_PATH_CONFIG)
-
+    config_path = console_options.get('conf_file_path', DEFAULT_PATH_CONFIG)
     conf_dict = get_config_from_file(config_path)
-    conf_dict.update(info_dict)
+    conf_dict.update(console_options)
 
     if not 'msg' in conf_dict:
-        msg_path = info_dict['msg_path']
-        msg = open(msg_path, 'r').read()
-        conf_dict['msg'] = msg
+        msg_path = console_options['msg_path']
+        file = open(msg_path, 'r')
+        try:
+            msg = file.read()
+            conf_dict['msg'] = msg
+        finally:
+            file.close()
 
-    path_log = conf_dict.get('path_log', '')
+    log_path = conf_dict.get('log_path','')
+    print log_path
+    # if 'log_path' in conf_dict:
+    #     log_path = conf_dict.get['log_path']
+    # else:
+    #     log_path = ''
     smtp_host = conf_dict['smtp_host']
     smtp_port = DEFAULT_PORT
     sender = conf_dict['sender']
@@ -96,8 +104,7 @@ def main():
     msg = conf_dict['msg']
 
     try:
-        con = EmailService(smtp_host, smtp_port, path_log,
-                    sender, recipient, subject, msg)
+        con = EmailService(smtp_host, smtp_port, log_path)
         result = con.send_email(sender, recipient, subject, msg)
         if result == SEND_COMPLETED:
             print 'Send mail action okay, completed'

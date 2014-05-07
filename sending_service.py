@@ -16,33 +16,33 @@ class EmailService():
     SERVICE_CLOSING = '221'
     SYNTAX_ERROR = '500'
 
-    TEL_COMMAND = 'telnet {} {}'
-    MAIL_FROM = 'mail from: {}'
-    RECIPIENT = 'rcpt to: {}'
-    MSG = '{}\n.'
-    SUBJECT = 'Subject:{}'
+    TEL_COMMAND = 'telnet {host} {port}'
+    MAIL_FROM = 'mail from: {sender}'
+    RECIPIENT = 'rcpt to: {recipient}'
+    MSG = '{msg}\n.'
+    SUBJECT = 'Subject:{subject}'
     COMMAND_CODE_REGEXP = '(?P<code>\d{3})(?P<other>.+$)'
     SEND_COMPLETED = 'completed'
-    CONNECT = 'Connected to {}'
+    CONNECT = 'Connected to {host}'
 
-    def __init__(self, smtp_host, smtp_port, path_log,
-                    sender, recipient, subject, msg):
+    def __init__(self, smtp_host, smtp_port, log_path):
         self.child = self.establish_connection(smtp_host,
-                                                path_log, smtp_port)
+                                                log_path, smtp_port)
 
-    def establish_connection(self, smtp_host, path_log, smtp_port):
-        CONNECT_TO = self.CONNECT.format(smtp_host)
+    def establish_connection(self, smtp_host, log_path, smtp_port):
+        CONNECT_TO = self.CONNECT.format(host=smtp_host)
 
-        command = self.TEL_COMMAND.format(smtp_host, smtp_port)
+        command = self.TEL_COMMAND.format(host=smtp_host, port=smtp_port)
         child = pexpect.spawn(command)  # connect to smtp server
 
-        if 'path_log' != '':
+        if log_path != '':
             try:
-                log_output = open(path_log, 'w')
+                log_output = open(log_path, 'w')
                 child.logfile = log_output
-            except IOError:
+            except IOError, opt:
                 logging.basicConfig(level=logging.DEBUG)
-                logging.warning(u'Path to log file is incorrect!')
+                logging.warning(u'Failed to open pexpect log file:')
+                print opt
 
         expect_options = [self.CONNECTION_REFUSED, CONNECT_TO,
                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
@@ -87,13 +87,13 @@ class EmailService():
         if not self.child.isalive():  # check is child alive
             raise TerminationConnectionException
         # sending line to smtp server with info about sender
-        self.child.sendline(self.MAIL_FROM.format(sender))
+        self.child.sendline(self.MAIL_FROM.format(sender=sender))
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
         # get answer (SMTP reply code) from smtp command MAIL TO
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
-            self.child.sendline(self.RECIPIENT.format(recipient))
+            self.child.sendline(self.RECIPIENT.format(recipient=recipient))
         elif expect_value == self.REQUEST_ABORTED:
             raise RequestedActionAbortedException
         elif expect_value == self.SYNTAX_ERROR:
@@ -117,8 +117,8 @@ class EmailService():
         # get answer (SMTP reply code) from smtp command DATA
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.START_MAIL_INPUT:
-            self.child.sendline(self.SUBJECT.format(subject))
-            self.child.sendline(self.MSG.format(msg))
+            self.child.sendline(self.SUBJECT.format(subject=subject))
+            self.child.sendline(self.MSG.format(msg=msg))
         elif expect_value == self.REQUEST_ABORTED:
             raise RequestedActionAbortedException
         elif expect_value == self.SYNTAX_ERROR:
