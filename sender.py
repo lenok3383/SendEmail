@@ -68,9 +68,7 @@ def get_info_from_console():
 
 
 def main():
-    # working_directory = os.getcwd()
-    DEFAULT_PATH_CONFIG = os.path.join(#working_directory,
-                                       "config/smtp_config.ini")
+    DEFAULT_PATH_CONFIG = os.path.join("config/smtp_config.ini")
     try:
         console_options = get_info_from_console()
     except ValueError, option:
@@ -90,12 +88,7 @@ def main():
         finally:
             file.close()
 
-    log_path = conf_dict.get('log_path','')
-    print log_path
-    # if 'log_path' in conf_dict:
-    #     log_path = conf_dict.get['log_path']
-    # else:
-    #     log_path = ''
+    log_path = conf_dict.get('log_path', '')
     smtp_host = conf_dict['smtp_host']
     smtp_port = DEFAULT_PORT
     sender = conf_dict['sender']
