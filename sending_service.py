@@ -41,8 +41,7 @@ class EmailService():
                 child.logfile = log_output
             except IOError, opt:
                 logging.basicConfig(level=logging.DEBUG)
-                logging.warning(u'Failed to open pexpect log file:')
-                print opt
+                logging.warning(u'Failed to open pexpect log file: %s' % opt)
 
         expect_options = [self.CONNECTION_REFUSED, CONNECT_TO,
                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
@@ -60,12 +59,12 @@ class EmailService():
                 elif expect_value == self.SERVICE_NOT_AVAILABLE:
                     child.close(True)
                     raise NotAvailableException
-            elif smtp_con_option[k] == pexpect.EOF:
+            elif smtp_con_option[k] ==  pexpect.EOF:
                 raise Exception('EOF error.SMTP could not connect.'
-                                ' Here is what SMTP said:', str(child))
+                                ' Here is what SMTP said:', child.before)
             elif smtp_con_option[k] == pexpect.TIMEOUT:
                 raise Exception('TIMEOUT error. Here is what SMTP said:',
-                                str(child))
+                                child.before)
 
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
@@ -74,10 +73,11 @@ class EmailService():
             child.close(True)
             raise UnknownServiceException
         elif expect_options[i] == pexpect.EOF:
-            raise Exception('EOF error2. Telnet could not connect.'
-                            ' Here is what telnet said:', child)
+            raise Exception('EOF error. Telnet could not connect.'
+                            ' Here is what telnet said:', str(child.before))
         elif expect_options[i] == pexpect.TIMEOUT:
-            raise Exception('TIMEOUT error. Here is what telnet said:', child)
+            raise Exception('TIMEOUT error. Here is what telnet said:',
+                            str(child.before))
 
     def get_expect_smtp_reply_code(self, child):
         m = child.match.group('code')
