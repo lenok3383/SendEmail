@@ -6,46 +6,53 @@ import logging
 
 
 class EmailService():
-    SERVICE_READY = r'220'
-    COMPLETED = r'250'
-    SERVICE_NOT_AVAILABLE = r'421'
-    CONNECTION_REFUSED = r'Connection refused'
-    UNKNOWN_SERVICE = r'Name or service not known'
-    REQUEST_ABORTED = r'451'
-    START_MAIL_INPUT = r'354'
-    SERVICE_CLOSING = r'221'
-    SYNTAX_ERROR = r'500'
+    SERVICE_READY = '220'
+    COMPLETED = '250'
+    SERVICE_NOT_AVAILABLE = '421'
+    CONNECTION_REFUSED = 'Connection refused'
+    UNKNOWN_SERVICE = 'Name or service not known'
+    REQUEST_ABORTED = '451'
+    START_MAIL_INPUT = '354'
+    SERVICE_CLOSING = '221'
+    SYNTAX_ERROR = '500'
 
-    TEL_COMMAND = 'telnet {server_host} {smtp_port}'
-    MAIL_FROM = 'mail from: {sender}'
-    RECIPIENT = 'rcpt to: {recipient}'
-    MSG = '{msg}\n.'
-    SUBJECT = 'Subject:{subject}'
-    COMMAND_CODE_REGEXP = r'(?P<code>\d{3})(?P<other>.+$)'
-    SEND_COMPLETED = r'completed'
-    CONNECT = r'Connected to {server_host}'
+    TEL_COMMAND = 'telnet {} {}'
+    MAIL_FROM = 'mail from: {}'
+    RECIPIENT = 'rcpt to: {}'
+    MSG = '{}\n.'
+    SUBJECT = 'Subject:{}'
+    COMMAND_CODE_REGEXP = '(?P<code>\d{3})(?P<other>.+$)'
+    SEND_COMPLETED = 'completed'
+    CONNECT = 'Connected to {}'
 
-    def __init__(self, info_dict):
-        self.child = self.establish_connection(info_dict)
+    def __init__(self, smtp_host, smtp_port, path_log,
+                    sender, recipient, subject, msg):
+        self.child = self.establish_connection(smtp_host,
+                                                path_log, smtp_port)
 
-    def establish_connection(self, info_dict):
-        CONNECT_TO = self.CONNECT.format(**info_dict)
-        command = self.TEL_COMMAND.format(**info_dict)
+    def establish_connection(self, smtp_host, path_log, smtp_port):
+        CONNECT_TO = self.CONNECT.format(smtp_host)
+
+        command = self.TEL_COMMAND.format(smtp_host, smtp_port)
         child = pexpect.spawn(command)  # connect to smtp server
-        if 'path_log' in info_dict:
-            path_log_file = info_dict['path_log']
+
+        if 'path_log' != '':
             try:
-                log_output = open(path_log_file, 'w')
+                log_output = open(path_log, 'w')
                 child.logfile = log_output
-            except Warning:
-                logging.warning('Path to log file is incorrect!')
+            except IOError:
+                logging.basicConfig(level=logging.DEBUG)
+                logging.warning(u'Path to log file is incorrect!')
+
         expect_options = [self.CONNECTION_REFUSED, CONNECT_TO,
                           self.UNKNOWN_SERVICE, pexpect.EOF, pexpect.TIMEOUT]
         smtp_con_option = [self.COMMAND_CODE_REGEXP, pexpect.EOF,
                            pexpect.TIMEOUT]
+
         i = child.expect(expect_options)
         if expect_options[i] == CONNECT_TO:
             k = child.expect(smtp_con_option)
+
             if smtp_con_option[k] == self.COMMAND_CODE_REGEXP:
                 expect_value = self.get_expect_smtp_reply_code(child)
                 if expect_value == self.SERVICE_READY:
@@ -54,11 +61,12 @@ class EmailService():
                     child.close(True)
                     raise NotAvailableException
             elif smtp_con_option[k] == pexpect.EOF:
-                raise Exception('EOF error. SMTP could not connect.'
+                raise Exception('EOF error.SMTP could not connect.'
                                 ' Here is what SMTP said:', str(child))
             elif smtp_con_option[k] == pexpect.TIMEOUT:
                 raise Exception('TIMEOUT error. Here is what SMTP said:',
                                 str(child))
+
         elif expect_options[i] == self.CONNECTION_REFUSED:
             child.close(True)
             raise ConnectionRefusedException
@@ -66,7 +74,7 @@ class EmailService():
             child.close(True)
             raise UnknownServiceException
         elif expect_options[i] == pexpect.EOF:
-            raise Exception('EOF error. Telnet could not connect.'
+            raise Exception('EOF error2. Telnet could not connect.'
                             ' Here is what telnet said:', child)
         elif expect_options[i] == pexpect.TIMEOUT:
             raise Exception('TIMEOUT error. Here is what telnet said:', child)
@@ -75,17 +83,17 @@ class EmailService():
         m = child.match.group('code')
         return m
 
-    def send_email(self, info_dict):
+    def send_email(self, sender, recipient, subject, msg):
         if not self.child.isalive():  # check is child alive
             raise TerminationConnectionException
         # sending line to smtp server with info about sender
-        self.child.sendline(self.MAIL_FROM.format(**info_dict))
+        self.child.sendline(self.MAIL_FROM.format(sender))
 
         self.child.expect(self.COMMAND_CODE_REGEXP)
         # get answer (SMTP reply code) from smtp command MAIL TO
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.COMPLETED:
-            self.child.sendline(self.RECIPIENT.format(**info_dict))
+            self.child.sendline(self.RECIPIENT.format(recipient))
         elif expect_value == self.REQUEST_ABORTED:
             raise RequestedActionAbortedException
         elif expect_value == self.SYNTAX_ERROR:
@@ -109,8 +117,8 @@ class EmailService():
         # get answer (SMTP reply code) from smtp command DATA
         expect_value = self.get_expect_smtp_reply_code(self.child)
         if expect_value == self.START_MAIL_INPUT:
-            self.child.sendline(self.SUBJECT.format(**info_dict))
-            self.child.sendline(self.MSG.format(**info_dict))
+            self.child.sendline(self.SUBJECT.format(subject))
+            self.child.sendline(self.MSG.format(msg))
         elif expect_value == self.REQUEST_ABORTED:
             raise RequestedActionAbortedException
         elif expect_value == self.SYNTAX_ERROR:
