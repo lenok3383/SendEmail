@@ -74,10 +74,10 @@ class EmailService():
             raise UnknownServiceException
         elif expect_options[i] == pexpect.EOF:
             raise Exception('EOF error. Telnet could not connect.'
-                            ' Here is what telnet said:', str(child.before))
+                            ' Here is what telnet said:', child.before)
         elif expect_options[i] == pexpect.TIMEOUT:
             raise Exception('TIMEOUT error. Here is what telnet said:',
-                            str(child.before))
+                            child.before)
 
     def get_expect_smtp_reply_code(self, child):
         m = child.match.group('code')
